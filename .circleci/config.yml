@@ -1,0 +1,36 @@
+version: 2
+jobs:
+  base:
+    docker:
+      - image: docker:stable-git
+    environment:
+      - PACKER_VERSION: "1.2.4"
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Install system dependencies
+          command: |
+            apk add --no-progress --no-cache ansible bash openssh curl unzip
+            apk -vv info|sort
+      - run:
+          name: Install Packer
+          command: |
+            curl -L -o packer.zip https://releases.hashicorp.com/packer/${PACKER_VERSION}/packer_${PACKER_VERSION}_linux_amd64.zip
+            unzip packer.zip
+            rm packer.zip
+            mv packer /usr/local/bin
+            packer version
+      - run:
+          name: Build base
+          command: |
+            ./scripts/build.sh
+          no_output_timeout: 5m
+workflows:
+  version: 2
+  base-runtime:
+    jobs:
+      - base:
+          filters:
+            branches:
+              only: 'release/base'

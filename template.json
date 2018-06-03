@@ -3,7 +3,6 @@
   "variables": {
     "docker_registry_username": "{{env `DOCKER_REGISTRY_USERNAME`}}",
     "docker_registry_password": "{{env `DOCKER_REGISTRY_PASSWORD`}}",
-    "docker_registry_address": "{{env `DOCKER_REGISTRY_ADDRESS`}}",
     "ansible_host": "default",
     "ansible_connection": "docker"
   },
@@ -54,8 +53,7 @@
         "type": "docker-push",
         "login": true,
         "login_username": "{{user `docker_registry_username`}}",
-        "login_password": "{{user `docker_registry_password`}}",
-        "login_server": "{{user `docker_registry_address`}}"
+        "login_password": "{{user `docker_registry_password`}}"
       }
     ]
   ]
