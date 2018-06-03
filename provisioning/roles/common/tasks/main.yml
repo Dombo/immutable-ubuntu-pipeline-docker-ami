@@ -1,0 +1,5 @@
+---
+- copy:
+    content: |
+             hello!
+    dest: /root/foo
