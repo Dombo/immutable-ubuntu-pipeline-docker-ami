@@ -1,0 +1,5 @@
+---
+dependencies:
+   - { role: rvm_io.ruby,
+       tags: ruby
+     }

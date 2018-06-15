@@ -1,2 +1,3 @@
 ---
-hello: world
+ruby_version: 2.3.1
+ruby_user: ruby

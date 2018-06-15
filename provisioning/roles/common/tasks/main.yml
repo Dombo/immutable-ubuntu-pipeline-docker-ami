@@ -3,3 +3,69 @@
     content: |
              hello!
     dest: /root/foo
+
+- name: Ensure group '{{ ruby_user }}' exists
+  group:
+    name: '{{ ruby_user }}'
+    state: present
+
+- name: Add the '{{ ruby_user }}' user to the '{{ ruby_user }}' group
+  user:
+    name: '{{ ruby_user }}'
+    group: '{{ ruby_user }}'
+    home: '/home/{{ ruby_user }}'
+    createhome: no
+    uid: 10000
+    shell: '/bin/bash'
+
+- name: Create the home directory for '{{ ruby_user }}'
+  file:
+    path: '/home/{{ ruby_user }}'
+    state: directory
+    owner: '{{ ruby_user }}'
+    group: '{{ ruby_user }}'
+    mode: 0755
+
+- name: Install system dependency - sudo
+  apt:
+    name: sudo
+    update_cache: yes
+
+- name: Make sure we have a 'sudoers' group
+  group:
+    name: sudoers
+    state: present
+
+- name: Add '{{ ruby_user }}' users to sudoers group
+  user:
+    name: '{{ ruby_user }}'
+    groups: sudoers
+    append: yes
+
+- name: Allow 'sudoers' group to have passwordless sudo
+  lineinfile:
+    dest: /etc/sudoers
+    state: present
+    regexp: '^%sudoers'
+    line: '%sudoers ALL=(ALL) NOPASSWD: ALL'
+    validate: 'visudo -cf %s'
+
+- name: Install system dependency - language-pack-en
+  apt:
+    name: language-pack-en
+    update_cache: yes
+
+- name: Install system dependency - build-essential
+  apt:
+    name: build-essential
+    update_cache: yes
+
+- name: Install system dependency - ca-certificates
+  apt:
+    name: ca-certificates
+    update_cache: yes
+
+- name: Install system dependency - curl
+  apt:
+    name: curl
+    update_cache: yes

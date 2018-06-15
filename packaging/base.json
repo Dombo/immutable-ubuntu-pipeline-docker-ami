@@ -5,6 +5,9 @@
     "docker_registry_password": "{{env `DOCKER_REGISTRY_PASSWORD`}}",
     "ansible_host": "default",
     "ansible_connection": "docker",
+    "ansible_roles_path": "{{template_dir}}/../provisioning/roles",
+    "ansible_roles_file": "{{template_dir}}/../provisioning/requirements.yml",
+    "ansible_playbook_file": "{{template_dir}}/../provisioning/playbook.yml",
     "aws_access_key": "",
     "aws_secret_access_key": "",
     "aws_region": ""
@@ -24,26 +27,13 @@
         "{{.Image}}",
         "/bin/bash"
       ]
-    },
-    {
-      "type": "amazon-ebs",
-      "name": "ami-base-artefact",
-      "access_key": "YOUR KEY HERE",
-      "secret_key": "YOUR SECRET KEY HERE",
-      "region": "us-east-1",
-      "source_ami": "ami-fce3c696",
-      "instance_type": "t2.micro",
-      "ssh_username": "ubuntu",
-      "ami_name": "packer-quick-start {{timestamp}}",
-      "tags": {
-        "OS_Version": "Ubuntu",
-        "Release": "Latest",
-        "Base_AMI_Name": "{{ .SourceAMIName }}",
-        "Extra": "{{ .SourceAMITags.TagName }}"
-      }
     }
   ],
   "provisioners": [
+    {
+      "type": "shell-local",
+      "command": "ansible-galaxy install --roles-path {{user `ansible_roles_path`}} --role-file {{user `ansible_roles_file`}}"
+    },
     {
       "type": "shell",
       "inline": [
@@ -54,7 +44,10 @@
     {
       "type": "ansible",
       "user": "root",
-      "playbook_file": "../provisioning/playbook.yml",
+      "playbook_file": "{{user `ansible_playbook_file`}}",
+      "ansible_env_vars": [
+        "ANSIBLE_ROLES_PATH={{user `ansible_roles_path` }}"
+      ],
       "extra_arguments": [
         "--extra-vars",
         "ansible_host={{user `ansible_host`}} ansible_connection={{user `ansible_connection`}}"
@@ -67,14 +60,14 @@
         "type": "docker-tag",
         "repository": "dhutton/immute",
         "tag": "0.0",
-        "only": ["docker"]
+        "only": ["docker-base-artefact"]
       },
       {
         "type": "docker-push",
         "login": true,
         "login_username": "{{user `docker_registry_username`}}",
         "login_password": "{{user `docker_registry_password`}}",
-        "only": ["docker"]
+        "only": ["docker-base-artefact"]
       }
     ]
   ]

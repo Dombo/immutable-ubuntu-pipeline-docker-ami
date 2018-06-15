@@ -1,0 +1,24 @@
+---
+# Output the version of dependencies, facilitates debugging long after the build runs
+- command: bash -lc "bundle --version"
+  become: yes
+  become_user: '{{ ruby_user }}'
+  register: bundle
+  tags:
+    - ruby
+- name: Output bundle version
+  debug:
+    var: bundle.stdout_lines
+  tags:
+    - ruby
+- command: bash -lc "rvm --version"
+  become: yes
+  become_user: '{{ ruby_user }}'
+  register: rvm
+  tags:
+    - ruby
+- name: Output rvm version
+  debug:
+    var: rvm.stdout_lines
+  tags:
+    - ruby

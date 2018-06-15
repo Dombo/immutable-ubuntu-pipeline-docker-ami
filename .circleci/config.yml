@@ -26,24 +26,8 @@ jobs:
           command: |
             ./scripts/build.sh base
           no_output_timeout: 5m
-  build:
-    docker:
-      - image: dhutton:immute
-    steps:
-      - checkout
-      - run:
-          name: Install deps
-          command: |
-            echo 'Installing deps!' >> /root/deps.txt
-      - run:
-          name: Run tests
-          command: |
-            echo 'Running tests!' >> /root/tests.txt
-      - run:
-          name: Building release artefact
-          command: |
-            ./scripts/build.sh release
-  checkout_code:
+
+  'checkout-code':
     docker:
       - image: dhutton/immute:0.0
     working_directory: ~/core/repo
@@ -58,7 +42,8 @@ jobs:
           key: repo-{{ .Environment.CIRCLE_SHA1 }}
           paths:
             - ~/core/repo
-  bundle-dependencies:
+
+  'bundle-dependencies':
     docker:
       - image: dhutton/immute:0.0
     working_directory: ~/core/repo
@@ -82,6 +67,7 @@ jobs:
           key: bundle-test-{{ checksum "Gemfile.lock" }}
           paths:
             - ~/core/repo/vendor/bundle
+
   test:
     docker:
       - image: dhutton/immute:0.0
@@ -97,6 +83,7 @@ jobs:
       - run:
           name: Fake test command
           command: echo 'Testing!'
+
   lint:
     docker:
       - image: dhutton/immute:0.0
@@ -112,6 +99,7 @@ jobs:
       - run:
           name: Fake lint command
           command: echo 'Linting!'
+
   package:
     docker:
       - image: dhutton/immute:0.0
@@ -124,6 +112,7 @@ jobs:
       - run:
           name: Fake package command
           command: echo 'Packaging! Copy the deployment folder into the release artefact'
+
 workflows:
   version: 2
   build-base-artefact:
@@ -132,19 +121,35 @@ workflows:
           filters:
             branches:
               only: 'release/base'
+
   build-test-package:
     jobs:
-      - checkout-code
-      - bundle-dependencies
+      - checkout-code:
+          filters:
+            branches:
+              ignore: 'release/base'
+      - bundle-dependencies:
           requires:
-            - checkout_code
-      - lint
+            - checkout-code
+          filters:
+            branches:
+              ignore: 'release/base'
+      - lint:
           requires:
             - bundle-dependencies
-      - test
+          filters:
+            branches:
+              ignore: 'release/base'
+      - test:
           requires:
             - bundle-dependencies
-      - package
+          filters:
+            branches:
+              ignore: 'release/base'
+      - package:
           requires:
             - lint
             - test
+          filters:
+            branches:
+              ignore: 'release/base'
