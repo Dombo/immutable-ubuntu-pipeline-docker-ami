@@ -25,7 +25,7 @@ jobs:
           name: Build base
           command: |
             ./scripts/build.sh base
-          no_output_timeout: 5m
+          no_output_timeout: 15m
 
   'checkout-code':
     docker:
@@ -33,11 +33,6 @@ jobs:
     working_directory: ~/core/repo
     steps:
       - checkout
-      - run:
-          name: version
-          command: |
-            ruby --version
-            gem --version
       - save_cache:
           key: repo-{{ .Environment.CIRCLE_SHA1 }}
           paths:
@@ -54,19 +49,11 @@ jobs:
       - restore_cache:
           keys:
             - bundle-deployment-{{ checksum "Gemfile.lock" }}
-      - restore_cache:
-          keys:
-            - bundle-test-{{ checksum "Gemfile.lock" }}
-      - run: bundle install --deployment --path vendor/deployment
-      - run: bundle install --with=test --path vendor/bundle
+      - run: bundle install --deployment --path vendor/bundle
       - save_cache:
           key: bundle-deployment-{{ checksum "Gemfile.lock" }}
           paths:
             - ~/core/repo/vendor/deployment
-      - save_cache:
-          key: bundle-test-{{ checksum "Gemfile.lock" }}
-          paths:
-            - ~/core/repo/vendor/bundle
 
   test:
     docker:
@@ -78,7 +65,7 @@ jobs:
             - repo-{{ .Environment.CIRCLE_SHA1 }}
       - restore_cache:
           keys:
-            - bundle-test-{{ checksum "Gemfile.lock" }}
+            - bundle-deployment-{{ checksum "Gemfile.lock" }}
       - run: bundle --path vendor/bundle
       - run:
           name: Fake test command
@@ -94,7 +81,7 @@ jobs:
             - repo-{{ .Environment.CIRCLE_SHA1 }}
       - restore_cache:
           keys:
-            - bundle-test-{{ checksum "Gemfile.lock" }}
+            - bundle-deployment-{{ checksum "Gemfile.lock" }}
       - run: bundle --path vendor/bundle
       - run:
           name: Fake lint command
@@ -105,10 +92,13 @@ jobs:
       - image: dhutton/immute:0.0
     working_directory: ~/core/repo
     steps:
-      - checkout
-      - attach_workspace:
-          at: ~/core/repo
-      - run: bundle --path vendor/deployment
+      - restore_cache:
+          keys:
+            - repo-{{ .Environment.CIRCLE_SHA1 }}
+      - restore_cache:
+          keys:
+            - bundle-deployment-{{ checksum "Gemfile.lock" }}
+      - run: bundle --path vendor/bundle
       - run:
           name: Fake package command
           command: echo 'Packaging! Copy the deployment folder into the release artefact'

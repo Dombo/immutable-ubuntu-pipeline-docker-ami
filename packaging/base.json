@@ -5,6 +5,7 @@
     "docker_registry_password": "{{env `DOCKER_REGISTRY_PASSWORD`}}",
     "ansible_host": "default",
     "ansible_connection": "docker",
+    "ansible_galaxy_roles_path": "{{template_dir}}/../provisioning/galaxy_roles",
     "ansible_roles_path": "{{template_dir}}/../provisioning/roles",
     "ansible_roles_file": "{{template_dir}}/../provisioning/requirements.yml",
     "ansible_playbook_file": "{{template_dir}}/../provisioning/playbook.yml",
@@ -26,13 +27,17 @@
         "{{user `ansible_host`}}",
         "{{.Image}}",
         "/bin/bash"
+      ],
+      "changes": [
+        "USER ruby",
+        "WORKDIR /home/ruby"
       ]
     }
   ],
   "provisioners": [
     {
       "type": "shell-local",
-      "command": "ansible-galaxy install --roles-path {{user `ansible_roles_path`}} --role-file {{user `ansible_roles_file`}}"
+      "command": "ansible-galaxy install --roles-path {{user `ansible_galaxy_roles_path`}} --role-file {{user `ansible_roles_file`}}"
     },
     {
       "type": "shell",
@@ -46,7 +51,7 @@
       "user": "root",
       "playbook_file": "{{user `ansible_playbook_file`}}",
       "ansible_env_vars": [
-        "ANSIBLE_ROLES_PATH={{user `ansible_roles_path` }}"
+        "ANSIBLE_ROLES_PATH={{user `ansible_galaxy_roles_path` }}:{{user `ansible_roles_path` }}"
       ],
       "extra_arguments": [
         "--extra-vars",

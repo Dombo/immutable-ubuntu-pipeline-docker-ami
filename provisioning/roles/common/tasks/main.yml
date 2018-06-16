@@ -1,9 +1,4 @@
 ---
-- copy:
-    content: |
-             hello!
-    dest: /root/foo
-
 - name: Ensure group '{{ ruby_user }}' exists
   group:
     name: '{{ ruby_user }}'
@@ -50,22 +45,7 @@
     line: '%sudoers ALL=(ALL) NOPASSWD: ALL'
     validate: 'visudo -cf %s'
 
-- name: Install system dependency - language-pack-en
-  apt:
-    name: language-pack-en
-    update_cache: yes
-
-- name: Install system dependency - build-essential
-  apt:
-    name: build-essential
-    update_cache: yes
-
-- name: Install system dependency - ca-certificates
+- name: Update repositories cache and install ruby role dependencies
   apt:
     name: ca-certificates
-    update_cache: yes
-
-- name: Install system dependency - curl
-  apt:
-    name: curl
     update_cache: yes

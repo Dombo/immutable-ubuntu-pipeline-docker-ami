@@ -1,24 +1,29 @@
 ---
+# Gem system dependencies
+- name: Update repositories cache and install pg gem dependencies
+  apt:
+    name: libpq-dev
+    update_cache: yes
+  tags:
+    - ruby
+
+- name: Update repositories cache and install sqlite3 gem dependencies
+  apt:
+    name: "{{ item }}"
+    update_cache: yes
+  with_items:
+    - sqlite3
+    - libsqlite3-dev
+  tags:
+    - ruby
+
 # Output the version of dependencies, facilitates debugging long after the build runs
-- command: bash -lc "bundle --version"
-  become: yes
-  become_user: '{{ ruby_user }}'
+- command: bundle --version
   register: bundle
   tags:
     - ruby
 - name: Output bundle version
   debug:
     var: bundle.stdout_lines
-  tags:
-    - ruby
-- command: bash -lc "rvm --version"
-  become: yes
-  become_user: '{{ ruby_user }}'
-  register: rvm
-  tags:
-    - ruby
-- name: Output rvm version
-  debug:
-    var: rvm.stdout_lines
   tags:
     - ruby

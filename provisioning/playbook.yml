@@ -5,3 +5,10 @@
   roles:
     - common
     - ruby
+
+  post_tasks:
+    - command: apt list --installed
+      register: installed_system_packages
+    - name: Output installed system dependencies
+      debug:
+        var: installed_system_packages.stdout_lines
